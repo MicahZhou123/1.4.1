@@ -1,5 +1,5 @@
 current ideas for additional features: 
 
-time limit to get all the coins 
-"cheat item" that allows you to skip traps (something you can find randomly) 
-sound effects
+1. time limit to get all the coins 
+2. "cheat item" that allows you to skip traps (something you can find randomly) 
+3. sound effects
