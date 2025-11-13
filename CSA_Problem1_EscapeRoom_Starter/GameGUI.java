@@ -331,30 +331,38 @@ public class GameGUI extends JComponent
     totalWalls = w;
   }
 
-  /**
-   * Reset the board to replay existing game. The method can be called at any time but results in a penalty if called
-   * before the player reaches the far right wall.
-   * <P>
-   * @return positive score for reaching the far right wall, penalty otherwise
-   */
-  public int replay()
-  {
+ /**
+ * Reset the board to replay existing game. If the player has reached the far
+ * right wall, a brand new board is generated. Otherwise, the same map is
+ * replayed with prizes and traps reactivated.
+ * <P>
+ * @return positive score for reaching the far right wall, penalty otherwise
+ */
+public int replay()
+{
+  int win = playerAtEnd();  
 
-    int win = playerAtEnd();
-  
-    // resize prizes and traps to "reactivate" them
-    for (Rectangle p: prizes)
+  if (win > 0) {
+    System.out.println("Starting a NEW map!");
+    createBoard();
+  } else {
+    System.out.println("Replaying the SAME map.");
+    for (Rectangle p : prizes) {
       p.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
-    for (Rectangle t: traps)
+    }
+    for (Rectangle t : traps) {
       t.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
-
-    // move player to start of board
-    x = START_LOC_X;
-    y = START_LOC_Y;
-    playerSteps = 0;
-    repaint();
-    return win;
+    }
   }
+
+  x = START_LOC_X;
+  y = START_LOC_Y;
+  playerSteps = 0;
+  repaint();
+
+  return win;
+}
+
 
  /**
   * End the game, checking if the player made it to the far right wall.
