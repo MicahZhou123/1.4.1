@@ -59,75 +59,95 @@ public class EscapeRoom
     Scanner in = new Scanner(System.in);
     String[] validCommands = { "right", "left", "up", "down", "r", "l", "u", "d",
     "jump", "jr", "jumpleft", "jl", "jumpup", "ju", "jumpdown", "jd",
-    "pickup", "p", "quit", "q", "replay", "help", "?"};
+    "pickup", "p", "trap", "t", "quit", "q", "replay", "help", "?"};
   
-    // set up game
-    boolean play = true;
-    while (play) 
+
+boolean play = true;
+while (play) 
+{
+  String cmd = UserInput.getValidInput(validCommands).toLowerCase();
+
+  if (cmd.indexOf("right") == 0 || cmd.equals("r")) 
+  {
+    score++; 
+    score += game.movePlayer(60, 0);
+  } 
+  else if (cmd.indexOf("left") == 0 || cmd.equals("l")) 
+  {
+    score++;
+    score += game.movePlayer(-60, 0);
+  } 
+  else if (cmd.indexOf("up") == 0 || cmd.equals("u")) 
+  {
+    score++;
+    score += game.movePlayer(0, -60);
+  } 
+  else if (cmd.indexOf("down") == 0 || cmd.equals("d")) 
+  {
+    score++;
+    score += game.movePlayer(0, 60);
+  }
+  
+  else if (cmd.indexOf("jump") == 0 || cmd.indexOf("jr") == 0) 
+  {
+    score++;  
+    if (cmd.indexOf("left") > 0 || cmd.equals("jl")) 
     {
-      String cmd = UserInput.getValidInput(validCommands).toLowerCase();
-      if (cmd.indexOf("right") == 0 || cmd.equals("r")) 
-      {
-        score += game.movePlayer(60, 0);
-      } 
-      else if (cmd.indexOf("left") == 0 || cmd.equals("l")) 
-      {
-        score += game.movePlayer(-60, 0);
-      } 
-      else if (cmd.indexOf("up") == 0 || cmd.equals("u")) 
-      {
-        score += game.movePlayer(0, -60);
-      } 
-      else if (cmd.indexOf("down") == 0 || cmd.equals("d")) 
-      {
-        score += game.movePlayer(0, 60);
-      }
-      else if (cmd.indexOf("jump") == 0 || cmd.indexOf("jr") == 0) 
-      {
-        if (cmd.indexOf("left") > 0 || cmd.equals("jl")) 
-        {
-          score += game.movePlayer(-120, 0);
-        } 
-        else if (cmd.indexOf("up") > 0 || cmd.equals("ju")) 
-        {
-          score += game.movePlayer(0, -120);
-        } 
-        else if (cmd.indexOf("down") > 0 || cmd.equals("jd")) 
-        {
-          score += game.movePlayer(0, 120);
-        } 
-        else 
-        {
-          score += game.movePlayer(120, 0);
-        }
-      }
-      else if (cmd.indexOf("pickup") == 0 || cmd.equals("p")) 
-      {
-        score += game.pickupPrize();
-      }
-      else if (cmd.indexOf("replay") == 0) 
-      {
-        score += game.replay();
-      }
-      else if (cmd.indexOf("help") == 0 || cmd.indexOf("?") == 0) 
-      {
-        System.out.println("Commands:");
-        System.out.println("  right/left/up/down or r/l/u/d - move one space");
-        System.out.println("  jr/jl/ju/jd                   - jump two spaces");
-        System.out.println("  pickup or p                   - pick up a prize");
-        System.out.println("  replay                        - reset and replay");
-        System.out.println("  quit or q                     - quit the game");
-      }
-      else if (cmd.indexOf("quit") == 0 || cmd.equals("q")) 
-      {
-        play = false;
-      }
-      else 
-      {
-        System.out.println("Invalid command.");
-        score -= 1;
-      }
+      score += game.movePlayer(-120, 0);
+    } 
+    else if (cmd.indexOf("up") > 0 || cmd.equals("ju")) 
+    {
+      score += game.movePlayer(0, -120);
+    } 
+    else if (cmd.indexOf("down") > 0 || cmd.equals("jd")) 
+    {
+      score += game.movePlayer(0, 120);
+    } 
+    else 
+    {
+      score += game.movePlayer(120, 0);
     }
+  }
+  else if (cmd.indexOf("pickup") == 0 || cmd.equals("p")) 
+  {
+    score += game.pickupPrize();
+  }
+  else if (cmd.indexOf("trap") == 0 || cmd.equals("t"))
+  {
+    score += game.springTrap(0, 0);
+  }
+  else if (cmd.indexOf("replay") == 0) 
+  {
+    System.out.println("=== REPLAY ===");
+    System.out.println("Your score this round: " + score);
+    System.out.println("Your step count: " + game.getSteps());
+    System.out.println("Resetting the game...");
+
+    score = 0;
+
+    score += game.replay();
+  }
+  else if (cmd.indexOf("help") == 0 || cmd.indexOf("?") == 0) 
+  {
+    System.out.println("Commands:");
+    System.out.println("  right/left/up/down or r/l/u/d - move one space");
+    System.out.println("  jr/jl/ju/jd                   - jump two spaces");
+    System.out.println("  pickup or p                   - pick up a prize");
+    System.out.println("  trap or t                     - spring a trap on this space");
+    System.out.println("  replay                        - reset and replay");
+    System.out.println("  quit or q                     - quit the game");
+  }
+  else if (cmd.indexOf("quit") == 0 || cmd.equals("q")) 
+  {
+    play = false;
+  }
+  else 
+  {
+    System.out.println("Invalid command.");
+    score -= 1;
+  }
+}
+
     
     score += game.endGame();
 
