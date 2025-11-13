@@ -331,7 +331,7 @@ public class GameGUI extends JComponent
     totalWalls = w;
   }
 
- /**
+/**
  * Reset the board to replay existing game. If the player has reached the far
  * right wall, a brand new board is generated. Otherwise, the same map is
  * replayed with prizes and traps reactivated.
@@ -362,6 +362,7 @@ public int replay()
 
   return win;
 }
+
 
 
  /**
