@@ -12,6 +12,7 @@ import java.io.File;
 import javax.imageio.ImageIO;
 
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  * A Game board on which to place and move players.
@@ -68,7 +69,6 @@ public class GameGUI extends JComponent
    */
   public GameGUI()
   {
-    
     try {
       bgImage = ImageIO.read(new File("grid.png"));      
     } catch (Exception e) {
@@ -84,7 +84,7 @@ public class GameGUI extends JComponent
     try {
       player = ImageIO.read(new File("player.png"));      
     } catch (Exception e) {
-     System.err.println("Could not open file player.png");
+      System.err.println("Could not open file player.png");
     }
     // save player location
     playerLoc = new Point(x,y);
@@ -104,10 +104,10 @@ public class GameGUI extends JComponent
     totalTraps = 5;
   }
 
- /**
-  * After a GameGUI object is created, this method adds the walls, prizes, and traps to the gameboard.
-  * Note that traps and prizes may occupy the same location.
-  */
+  /**
+   * After a GameGUI object is created, this method adds the walls, prizes, and traps to the gameboard.
+   * Note that traps and prizes may occupy the same location.
+   */
   public void createBoard()
   {
     traps = new Rectangle[totalTraps];
@@ -130,104 +130,112 @@ public class GameGUI extends JComponent
    * <P>
    * @param incrx amount to move player in x direction
    * @param incry amount to move player in y direction
-   * @return penalty score for hitting a wall or potentially going off the grid, 0 otherwise
+   * @return total score change from this move
    */
   public int movePlayer(int incrx, int incry)
   {
-      int newX = x + incrx;
-      int newY = y + incry;
+    int newX = x + incrx;
+    int newY = y + incry;
       
-      // increment regardless of whether player really moves
-      playerSteps++;
+    // increment regardless of whether player really moves
+    playerSteps++;
 
-      // check if off grid horizontally and vertically
-      if ( (newX < 0 || newX > WIDTH-SPACE_SIZE) || (newY < 0 || newY > HEIGHT-SPACE_SIZE) )
+    // check if off grid horizontally and vertically
+    if ( (newX < 0 || newX > WIDTH - SPACE_SIZE) ||
+         (newY < 0 || newY > HEIGHT - SPACE_SIZE) )
+    {
+      System.out.println ("OFF THE GRID!");
+      return -offGridVal;
+    }
+
+    // determine if a wall is in the way
+    for (Rectangle r: walls)
+    {
+      // this rect. location
+      int startX =  (int)r.getX();
+      int endX  =  (int)r.getX() + (int)r.getWidth();
+      int startY =  (int)r.getY();
+      int endY = (int) r.getY() + (int)r.getHeight();
+
+      // moving RIGHT, check to the right
+      if ((incrx > 0) && (x <= startX) && (startX <= newX) &&
+          (y >= startY) && (y <= endY))
       {
-        System.out.println ("OFF THE GRID!");
-        return -offGridVal;
+        System.out.println("A WALL IS IN THE WAY");
+        return -hitWallVal;
       }
-
-      // determine if a wall is in the way
-      for (Rectangle r: walls)
+      // moving LEFT, check to the left
+      else if ((incrx < 0) && (x >= startX) && (startX >= newX) &&
+               (y >= startY) && (y <= endY))
       {
-        // this rect. location
-        int startX =  (int)r.getX();
-        int endX  =  (int)r.getX() + (int)r.getWidth();
-        int startY =  (int)r.getY();
-        int endY = (int) r.getY() + (int)r.getHeight();
-
-        // (Note: the following if statements could be written as huge conditional but who wants to look at that!?)
-        // moving RIGHT, check to the right
-        if ((incrx > 0) && (x <= startX) && (startX <= newX) && (y >= startY) && (y <= endY))
-        {
-          System.out.println("A WALL IS IN THE WAY");
-          return -hitWallVal;
-        }
-        // moving LEFT, check to the left
-        else if ((incrx < 0) && (x >= startX) && (startX >= newX) && (y >= startY) && (y <= endY))
-        {
-          System.out.println("A WALL IS IN THE WAY");
-          return -hitWallVal;
-        }
-        // moving DOWN check below
-        else if ((incry > 0) && (y <= startY && startY <= newY && x >= startX && x <= endX))
-        {
-          System.out.println("A WALL IS IN THE WAY");
-          return -hitWallVal;
-        }
-        // moving UP check above
-        else if ((incry < 0) && (y >= startY) && (startY >= newY) && (x >= startX) && (x <= endX))
-        {
-          System.out.println("A WALL IS IN THE WAY");
-          return -hitWallVal;
-        }     
+        System.out.println("A WALL IS IN THE WAY");
+        return -hitWallVal;
       }
-
-      // all is well, move player
-      x += incrx;
-      y += incry;
-
-      int trapScore = 0;
-
-      double px = x;
-      double py = y;
-      for (Rectangle r : traps)
+      // moving DOWN check below
+      else if ((incry > 0) && (y <= startY) && (startY <= newY) &&
+               (x >= startX) && (x <= endX))
       {
-        // only check traps that haven't been sprung yet
-        if (r.getWidth() > 0 && r.contains(px, py))
-        {
-          System.out.println("YOU STEPPED ON A TRAP!");
-          r.setSize(0, 0);      
-          trapScore += trapVal; 
-        }
+        System.out.println("A WALL IS IN THE WAY");
+        return -hitWallVal;
       }
+      // moving UP check above
+      else if ((incry < 0) && (y >= startY) && (startY >= newY) &&
+               (x >= startX) && (x <= endX))
+      {
+        System.out.println("A WALL IS IN THE WAY");
+        return -hitWallVal;
+      }     
+    }
 
-      repaint();
-      return trapScore;
-}
+    // all is well, move player
+    x += incrx;
+    y += incry;
 
-  
+    int trapScore = 0;
 
-  /**
-   * Check the space adjacent to the player for a trap. The adjacent location is one space away from the player, 
-   * designated by newx, newy.
-   * <P>
-   * precondition: newx and newy must be the amount a player regularly moves, otherwise an existing trap may go undetected
-   * <P>
-   * @param newx a location indicating the space to the right or left of the player
-   * @param newy a location indicating the space above or below the player
-   * @return true if the new location has a trap that has not been sprung, false otherwise
-   */
+    // check if the new location has a trap
+    double px = x;
+    double py = y;
+
+    for (Rectangle r : traps)
+    {
+      if (r.getWidth() > 0 && r.contains(px, py))
+      {
+        System.out.println("YOU STEPPED ON A TRAP! Spring the trap? (y/n)");
+
+        Scanner sc = new Scanner(System.in);
+        String ans = sc.nextLine().trim().toLowerCase();
+
+        if (ans.startsWith("y"))
+        {
+          r.setSize(0, 0);   // trap is now sprung
+          System.out.println("TRAP SPRUNG! +" + trapVal + " points.");
+          trapScore += trapVal;
+        }
+        else
+        {
+          r.setSize(0, 0);   // still remove the trap
+          System.out.println("You ignored the trap... -" + trapVal + " points.");
+          trapScore -= trapVal;
+        }
+
+        // there can only be one trap at this tile; we're done
+        break;
+      }
+    }
+
+    repaint();
+    return trapScore;
+  }
+
   public boolean isTrap(int newx, int newy)
   {
     double px = playerLoc.getX() + newx;
     double py = playerLoc.getY() + newy;
 
-
     for (Rectangle r: traps)
     {
-      // DEBUG: System.out.println("trapx:" + r.getX() + " trapy:" + r.getY() + "\npx: " + px + " py:" + py);
-      // zero size traps have already been sprung, ignore
+
       if (r.getWidth() > 0)
       {
         // if new location of player has a trap, return true
@@ -238,32 +246,19 @@ public class GameGUI extends JComponent
         }
       }
     }
-    // there is no trap where player wants to go
     return false;
   }
 
-  /**
-   * Spring the trap. Traps can only be sprung once and attempts to spring
-   * a sprung task results in a penalty.
-   * <P>
-   * precondition: newx and newy must be the amount a player regularly moves, otherwise an existing trap may go unsprung
-   * <P>
-   * @param newx a location indicating the space to the right or left of the player
-   * @param newy a location indicating the space above or below the player
-   * @return a positive score if a trap is sprung, otherwise a negative penalty for trying to spring a non-existent trap
-   */
+
   public int springTrap(int newx, int newy)
   {
     double px = playerLoc.getX() + newx;
     double py = playerLoc.getY() + newy;
 
-    // check all traps, some of which may be already sprung
     for (Rectangle r: traps)
     {
-      // DEBUG: System.out.println("trapx:" + r.getX() + " trapy:" + r.getY() + "\npx: " + px + " py:" + py);
       if (r.contains(px, py))
       {
-        // zero size traps indicate it has been sprung, cannot spring again, so ignore
         if (r.getWidth() > 0)
         {
           r.setSize(0,0);
@@ -289,7 +284,6 @@ public class GameGUI extends JComponent
 
     for (Rectangle p: prizes)
     {
-      // DEBUG: System.out.println("prizex:" + p.getX() + " prizey:" + p.getY() + "\npx: " + px + " py:" + py);
       // if location has a prize, pick it up
       if (p.getWidth() > 0 && p.contains(px, py))
       {
@@ -314,11 +308,7 @@ public class GameGUI extends JComponent
   }
   
   /**
-   * Set the designated number of prizes in the game.  This can be used to customize the gameboard configuration.
-   * <P>
-   * precondition p must be a positive, non-zero integer
-   * <P>
-   * @param p number of prizes to create
+   * Set the designated number of prizes in the game.
    */
   public void setPrizes(int p) 
   {
@@ -326,11 +316,7 @@ public class GameGUI extends JComponent
   }
   
   /**
-   * Set the designated number of traps in the game. This can be used to customize the gameboard configuration.
-   * <P>
-   * precondition t must be a positive, non-zero integer
-   * <P>
-   * @param t number of traps to create
+   * Set the designated number of traps in the game.
    */
   public void setTraps(int t) 
   {
@@ -338,56 +324,48 @@ public class GameGUI extends JComponent
   }
   
   /**
-   * Set the designated number of walls in the game. This can be used to customize the gameboard configuration.
-   * <P>
-   * precondition t must be a positive, non-zero integer
-   * <P>
-   * @param w number of walls to create
+   * Set the designated number of walls in the game.
    */
   public void setWalls(int w) 
   {
     totalWalls = w;
   }
 
-/**
- * Reset the board to replay existing game. If the player has reached the far
- * right wall, a brand new board is generated. Otherwise, the same map is
- * replayed with prizes and traps reactivated.
- * <P>
- * @return positive score for reaching the far right wall, penalty otherwise
- */
-public int replay()
-{
-  int win = playerAtEnd();  
+  /**
+   * Reset the board to replay existing game. If the player has reached the far
+   * right wall, a brand new board is generated. Otherwise, the same map is
+   * replayed with prizes and traps reactivated.
+   * <P>
+   * @return positive score for reaching the far right wall, penalty otherwise
+   */
+  public int replay()
+  {
+    int win = playerAtEnd();  
 
-  if (win > 0) {
-    System.out.println("Starting a NEW map!");
-    createBoard();
-  } else {
-    System.out.println("Replaying the SAME map.");
-    for (Rectangle p : prizes) {
-      p.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
+    if (win > 0) {
+      System.out.println("Starting a NEW map!");
+      createBoard();
+    } else {
+      System.out.println("Replaying the SAME map.");
+      for (Rectangle p : prizes) {
+        p.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
+      }
+      for (Rectangle t : traps) {
+        t.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
+      }
     }
-    for (Rectangle t : traps) {
-      t.setSize(SPACE_SIZE/3, SPACE_SIZE/3);
-    }
+
+    x = START_LOC_X;
+    y = START_LOC_Y;
+    playerSteps = 0;
+    repaint();
+
+    return win;
   }
 
-  x = START_LOC_X;
-  y = START_LOC_Y;
-  playerSteps = 0;
-  repaint();
-
-  return win;
-}
-
-
-
- /**
-  * End the game, checking if the player made it to the far right wall.
-  * <P>
-  * @return positive score for reaching the far right wall, penalty otherwise
-  */
+  /**
+   * End the game, checking if the player made it to the far right wall.
+   */
   public int endGame() 
   {
     int win = playerAtEnd();
@@ -400,7 +378,7 @@ public int replay()
   /*------------------- public methods not to be called as part of API -------------------*/
 
   /** 
-   * For internal use and should not be called directly: Users graphics buffer to paint board elements.
+   * For internal use and should not be called directly: Uses graphics buffer to paint board elements.
    */
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
@@ -422,9 +400,9 @@ public int replay()
       // picked up prizes are 0 size so don't render
       if (p.getWidth() > 0) 
       {
-      int px = (int)p.getX();
-      int py = (int)p.getY();
-      g.drawImage(prizeImage, px, py, null);
+        int px = (int)p.getX();
+        int py = (int)p.getY();
+        g.drawImage(prizeImage, px, py, null);
       }
     }
 
@@ -450,15 +428,15 @@ public int replay()
   {
     int s = SPACE_SIZE; 
     Random rand = new Random();
-     for (int numPrizes = 0; numPrizes < totalPrizes; numPrizes++)
-     {
+    for (int numPrizes = 0; numPrizes < totalPrizes; numPrizes++)
+    {
       int h = rand.nextInt(GRID_H);
       int w = rand.nextInt(GRID_W);
 
       Rectangle r;
       r = new Rectangle((w*s + 15),(h*s + 15), 15, 15);
       prizes[numPrizes] = r;
-     }
+    }
   }
 
   /*
@@ -469,15 +447,15 @@ public int replay()
   {
     int s = SPACE_SIZE; 
     Random rand = new Random();
-     for (int numTraps = 0; numTraps < totalTraps; numTraps++)
-     {
+    for (int numTraps = 0; numTraps < totalTraps; numTraps++)
+    {
       int h = rand.nextInt(GRID_H);
       int w = rand.nextInt(GRID_W);
 
       Rectangle r;
       r = new Rectangle((w*s + 15),(h*s + 15), 15, 15);
       traps[numTraps] = r;
-     }
+    }
   }
 
   /*
@@ -485,31 +463,31 @@ public int replay()
    */
   private void createWalls()
   {
-     int s = SPACE_SIZE; 
+    int s = SPACE_SIZE; 
 
-     Random rand = new Random();
-     for (int numWalls = 0; numWalls < totalWalls; numWalls++)
-     {
+    Random rand = new Random();
+    for (int numWalls = 0; numWalls < totalWalls; numWalls++)
+    {
       int h = rand.nextInt(GRID_H);
       int w = rand.nextInt(GRID_W);
 
       Rectangle r;
-       if (rand.nextInt(2) == 0) 
-       {
-         // vertical wall
-         r = new Rectangle((w*s + s - 5),h*s, 8,s);
-       }
-       else
-       {
-         /// horizontal
-         r = new Rectangle(w*s,(h*s + s - 5), s, 8);
-       }
-       walls[numWalls] = r;
-     }
+      if (rand.nextInt(2) == 0) 
+      {
+        // vertical wall
+        r = new Rectangle((w*s + s - 5),h*s, 8,s);
+      }
+      else
+      {
+        // horizontal
+        r = new Rectangle(w*s,(h*s + s - 5), s, 8);
+      }
+      walls[numWalls] = r;
+    }
   }
 
   /**
-   * Checks if player as at the far right of the board 
+   * Checks if player is at the far right of the board 
    * @return positive score for reaching the far right wall, penalty otherwise
    */
   private int playerAtEnd() 
@@ -528,6 +506,5 @@ public int replay()
       score = -endVal;
     }
     return score;
-  
   }
 }
