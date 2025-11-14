@@ -186,9 +186,27 @@ public class GameGUI extends JComponent
       // all is well, move player
       x += incrx;
       y += incry;
-      repaint();   
-      return 0;   
-  }
+
+      int trapScore = 0;
+
+      double px = x;
+      double py = y;
+      for (Rectangle r : traps)
+      {
+        // only check traps that haven't been sprung yet
+        if (r.getWidth() > 0 && r.contains(px, py))
+        {
+          System.out.println("YOU STEPPED ON A TRAP!");
+          r.setSize(0, 0);      
+          trapScore += trapVal; 
+        }
+      }
+
+      repaint();
+      return trapScore;
+}
+
+  
 
   /**
    * Check the space adjacent to the player for a trap. The adjacent location is one space away from the player, 
