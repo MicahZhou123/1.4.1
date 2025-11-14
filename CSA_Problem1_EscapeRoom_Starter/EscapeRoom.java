@@ -112,10 +112,6 @@ while (play)
   {
     score += game.pickupPrize();
   }
-  else if (cmd.indexOf("trap") == 0 || cmd.equals("t"))
-  {
-    score += game.springTrap(0, 0);
-  }
   else if (cmd.indexOf("replay") == 0) 
   {
     System.out.println("=== REPLAY ===");
