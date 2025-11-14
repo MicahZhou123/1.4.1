@@ -228,49 +228,9 @@ public class GameGUI extends JComponent
     return trapScore;
   }
 
-  public boolean isTrap(int newx, int newy)
-  {
-    double px = playerLoc.getX() + newx;
-    double py = playerLoc.getY() + newy;
+  
 
-    for (Rectangle r: traps)
-    {
-
-      if (r.getWidth() > 0)
-      {
-        // if new location of player has a trap, return true
-        if (r.contains(px, py))
-        {
-          System.out.println("A TRAP IS AHEAD");
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-
-  public int springTrap(int newx, int newy)
-  {
-    double px = playerLoc.getX() + newx;
-    double py = playerLoc.getY() + newy;
-
-    for (Rectangle r: traps)
-    {
-      if (r.contains(px, py))
-      {
-        if (r.getWidth() > 0)
-        {
-          r.setSize(0,0);
-          System.out.println("TRAP IS SPRUNG!");
-          return trapVal;
-        }
-      }
-    }
-    // no trap here, penalty
-    System.out.println("THERE IS NO TRAP HERE TO SPRING");
-    return -trapVal;
-  }
+  
 
   /**
    * Pickup a prize and score points. If no prize is in that location, this results in a penalty.
